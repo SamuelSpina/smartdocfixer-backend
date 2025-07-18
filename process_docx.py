@@ -5,12 +5,8 @@ import openai
 import os
 import tempfile
 from dotenv import load_dotenv
-import asyncio
 
 load_dotenv()
-
-# Initialize OpenAI
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def fix_document(file):
     """Main function to fix document grammar, clarity, and formatting"""
@@ -53,6 +49,9 @@ async def fix_document(file):
 async def improve_text_with_ai(text):
     """Use OpenAI to improve grammar and clarity"""
     
+    # Initialize client here to avoid import issues
+    client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
     prompt = f"""
     You are a professional document editor. Improve this text by:
     1. Fixing grammar and spelling errors
@@ -67,7 +66,7 @@ async def improve_text_with_ai(text):
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",  # Using mini version for faster/cheaper processing
             messages=[
                 {"role": "system", "content": "You are a professional document editor."},
                 {"role": "user", "content": prompt}
