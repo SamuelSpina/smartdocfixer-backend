@@ -58,14 +58,26 @@ async def fix_document(file):
 async def improve_text_with_ai(text):
     """Use OpenAI to improve grammar and clarity"""
     
-    # Test if OpenAI API key exists
+    # Check if API key exists
     api_key = os.getenv("OPENAI_API_KEY")
+    
     if not api_key:
-        print("No OpenAI API key found!")
+        print("ERROR: No OPENAI_API_KEY found in environment variables")
         return f"[NO API KEY] {text}"
     
+    if not api_key.startswith("sk-"):
+        print(f"ERROR: Invalid API key format. Key starts with: {api_key[:10]}...")
+        return f"[INVALID KEY] {text}"
+    
+    print(f"Using API key: {api_key[:10]}...{api_key[-10:]}")  # Show first/last 10 chars
+    
     # Initialize client
-    client = openai.OpenAI(api_key=api_key)
+    try:
+        client = openai.OpenAI(api_key=api_key)
+        print("OpenAI client initialized successfully")
+    except Exception as e:
+        print(f"ERROR creating OpenAI client: {e}")
+        return f"[CLIENT ERROR] {text}"
     
     prompt = f"""Fix this text by improving grammar, clarity, and professionalism. Keep the same meaning but make it much better:
 
@@ -74,6 +86,7 @@ async def improve_text_with_ai(text):
 Return only the improved text."""
     
     try:
+        print("Making API call to OpenAI...")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -84,6 +97,7 @@ Return only the improved text."""
             temperature=0.2
         )
         
+        print("API call successful!")
         improved = response.choices[0].message.content.strip()
         
         # Remove quotes if AI adds them
@@ -95,8 +109,8 @@ Return only the improved text."""
         return improved
     
     except Exception as e:
-        print(f"AI processing error: {e}")
-        return f"[AI ERROR] {text}"  # Return original with error marker
+        print(f"DETAILED API ERROR: {type(e).__name__}: {str(e)}")
+        return f"[API CALL FAILED: {str(e)}] {text}"
 
 def apply_formatting_to_run(run):
     """Apply consistent formatting to a text run"""
