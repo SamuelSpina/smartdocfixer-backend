@@ -1,5 +1,5 @@
 from docx import Document
-from docx.shared import Inches
+from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import openai
 import os
@@ -25,14 +25,19 @@ async def fix_document(file):
     # Fix each paragraph with AI
     for para in doc.paragraphs:
         if para.text.strip():  # Only process non-empty paragraphs
-            # Get AI-improved text
-            improved_text = await improve_text_with_ai(para.text)
+            original_text = para.text
+            print(f"Original: {original_text}")  # Debug log
             
-            # Replace paragraph text
-            para.text = improved_text
+            # Get AI-improved text
+            improved_text = await improve_text_with_ai(original_text)
+            print(f"Improved: {improved_text}")  # Debug log
+            
+            # Clear the paragraph and add improved text
+            para.clear()
+            run = para.add_run(improved_text)
             
             # Apply consistent formatting
-            apply_formatting(para)
+            apply_formatting_to_run(run)
     
     # Apply document-wide formatting
     format_document(doc)
@@ -52,46 +57,43 @@ async def improve_text_with_ai(text):
     # Initialize client here to avoid import issues
     client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     
-    prompt = f"""
-    You are a professional document editor. Improve this text by:
-    1. Fixing grammar and spelling errors
-    2. Improving clarity and readability
-    3. Making it more professional
-    4. Keeping the original meaning and tone
-    
-    Original text: {text}
-    
-    Return only the improved text, nothing else.
-    """
+    prompt = f"""You are a professional document editor. Improve this text by:
+1. Fixing grammar and spelling errors
+2. Improving clarity and readability  
+3. Making it more professional
+4. Keeping the original meaning
+
+Original text: {text}
+
+Return ONLY the improved text, nothing else."""
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Using mini version for faster/cheaper processing
+            model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a professional document editor."},
+                {"role": "system", "content": "You are a professional document editor. Return only the improved text."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=500,
+            max_tokens=1000,
             temperature=0.3
         )
         
-        return response.choices[0].message.content.strip()
+        improved = response.choices[0].message.content.strip()
+        
+        # Remove any quotes or extra formatting that AI might add
+        if improved.startswith('"') and improved.endswith('"'):
+            improved = improved[1:-1]
+        
+        return improved
     
     except Exception as e:
         print(f"AI processing error: {e}")
         return text  # Return original text if AI fails
 
-def apply_formatting(paragraph):
-    """Apply consistent formatting to paragraph"""
-    
-    # Set font and size
-    for run in paragraph.runs:
-        run.font.name = 'Calibri'
-        run.font.size = Inches(0.12)  # 11pt
-    
-    # Set paragraph spacing
-    paragraph.space_after = Inches(0.1)
-    paragraph.space_before = Inches(0.05)
+def apply_formatting_to_run(run):
+    """Apply consistent formatting to a text run"""
+    run.font.name = 'Calibri'
+    run.font.size = Pt(11)  # Using Pt instead of Inches for font size
 
 def format_document(doc):
     """Apply document-wide formatting improvements"""
@@ -104,12 +106,12 @@ def format_document(doc):
         section.left_margin = Inches(1)
         section.right_margin = Inches(1)
     
-    # Identify and format headings (simple heuristic)
+    # Format potential headings
     for para in doc.paragraphs:
         text = para.text.strip()
-        if text and len(text) < 60 and not text.endswith('.'):
-            # Likely a heading
+        # Simple heuristic for headings: short lines without periods
+        if text and len(text) < 60 and not text.endswith('.') and not text.endswith(','):
             para.alignment = WD_ALIGN_PARAGRAPH.LEFT
             for run in para.runs:
                 run.bold = True
-                run.font.size = Inches(0.14)  # 14pt for headings
+                run.font.size = Pt(14)  # 14pt for headings
