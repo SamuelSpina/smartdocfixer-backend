@@ -231,7 +231,7 @@ async def get_usage(email: str, request: Request):
 
 @app.post("/fix-document/")
 async def upload_and_fix(
-    request: Request
+    request: Request,
     file: UploadFile = File(...),
     email: str = Form(...)
 ):
