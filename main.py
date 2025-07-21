@@ -1,21 +1,31 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Request
+# main.py
+import os
+import uvicorn
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+from sqlalchemy.orm import Session
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+
+# Import our new modules
+from database import SessionLocal, engine, Base
+import models
+import schemas
 from process_docx import fix_document
-import uvicorn
-import os
-import json
-import hashlib
-import secrets
-from datetime import datetime, timedelta
-from pathlib import Path
 
-app = FastAPI(title="SmartDocFixer API", version="1.0.0")
+# Create all database tables on startup
+Base.metadata.create_all(bind=engine)
 
-# File-based storage for MVP
-USAGE_FILE = "user_usage.json"
-USERS_FILE = "users.json"
+# --- Configuration & Setup ---
+app = FastAPI(title="SmartDocFixer API", version="2.0.0")
 
+# Allow all origins for simplicity during development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,263 +34,157 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def load_usage_data():
-    """Load user usage data from file"""
-    if Path(USAGE_FILE).exists():
-        with open(USAGE_FILE, 'r') as f:
-            return json.load(f)
-    return {}
+# --- Security & Authentication ---
+# Secret key to create and sign tokens.
+# In production, load this from an environment variable and make it much more complex!
+SECRET_KEY = os.getenv("SECRET_KEY", "a_very_secret_key_for_development")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # Token expires in 7 days
 
-def save_usage_data(data):
-    """Save user usage data to file"""
-    with open(USAGE_FILE, 'w') as f:
-        json.dump(data, f)
+# Password Hashing setup
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def load_users():
-    """Load registered users"""
-    if Path(USERS_FILE).exists():
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    return {}
+# OAuth2 Scheme
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-def save_users(data):
-    """Save users data"""
-    with open(USERS_FILE, 'w') as f:
-        json.dump(data, f)
+# --- Dependency ---
+def get_db():
+    """Dependency to get a DB session for each request."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-def hash_password(password: str) -> str:
-    """Hash password for storage"""
-    return hashlib.sha256(password.encode()).hexdigest()
+# --- Utility Functions ---
+def verify_password(plain_password, hashed_password):
+    """Verify a plain password against a hashed one."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    """Hash a password."""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """Create a new JWT access token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
+    """Decode token to get the current user."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = schemas.TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = db.query(models.User).filter(models.User.email == token_data.email).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 def get_client_ip(request: Request) -> str:
-    """Get client IP address"""
+    """Get client IP address from request."""
     forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host
+    return forwarded.split(",")[0].strip() if forwarded else request.client.host
 
-def get_user_usage(email: str, ip_address: str = None):
-    """Get user's current usage count for this month"""
-    data = load_usage_data()
-    current_month = datetime.now().strftime("%Y-%m")
-    
-    # Create usage key (email + IP to prevent abuse)
-    usage_key = f"{email}:{ip_address}" if ip_address else email
-    
-    if usage_key not in data:
-        return 0
-    
-    user_data = data[usage_key]
-    if user_data.get("month") != current_month:
-        return 0  # New month, reset count
-    
-    return user_data.get("count", 0)
 
-def track_usage(email: str, ip_address: str = None):
-    """Track document processing for user"""
-    data = load_usage_data()
-    current_month = datetime.now().strftime("%Y-%m")
-    
-    usage_key = f"{email}:{ip_address}" if ip_address else email
-    
-    if usage_key not in data:
-        data[usage_key] = {"month": current_month, "count": 1, "email": email}
-    else:
-        if data[usage_key].get("month") != current_month:
-            data[usage_key]["month"] = current_month
-            data[usage_key]["count"] = 1
-        else:
-            data[usage_key]["count"] += 1
-    
-    save_usage_data(data)
-
-def is_registered_user(email: str) -> bool:
-    """Check if user is registered"""
-    users = load_users()
-    return email in users
-
-def is_pro_user(email: str) -> bool:
-    """Check if user has pro subscription"""
-    users = load_users()
-    user_data = users.get(email, {})
-    
-    # Check if pro subscription is still valid
-    if user_data.get("is_pro", False):
-        pro_until = user_data.get("pro_until")
-        if pro_until:
-            pro_date = datetime.fromisoformat(pro_until)
-            return datetime.now() < pro_date
-    
-    return False
-
-def get_usage_limit(email: str) -> int:
-    """Get usage limit based on user status"""
-    if is_pro_user(email):
-        return float('inf')  # Unlimited
-    elif is_registered_user(email):
-        return 3  # 3 total for registered users
-    else:
-        return 1  # 1 for email-only users
-
+# --- API Endpoints ---
 @app.get("/")
 async def root():
-    return {"message": "SmartDocFixer API is running!"}
+    return {"message": "Welcome to SmartDocFixer API v2.0!"}
 
-@app.post("/signup/")
-async def signup(
-    email: str = Form(...),
-    password: str = Form(...)
-):
-    """Register new user"""
+@app.post("/signup", response_model=schemas.User)
+async def signup(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    """Register a new user."""
     if "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email required")
-    
     if len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     
-    users = load_users()
-    
-    if email in users:
+    db_user = db.query(models.User).filter(models.User.email == email).first()
+    if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Save new user
-    users[email] = {
-        "email": email,
-        "password_hash": hash_password(password),
-        "registered_date": datetime.now().isoformat(),
-        "is_pro": False,
-        "pro_until": None
-    }
-    
-    save_users(users)
-    
-    return {
-        "message": "Registration successful! You now have 3 free documents total.",
-        "user": {
-            "email": email,
-            "registered": True,
-            "is_pro": False
-        }
-    }
 
-@app.post("/login/")
-async def login(
-    email: str = Form(...),
-    password: str = Form(...)
-):
-    """User login"""
-    users = load_users()
-    
-    if email not in users:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-    user = users[email]
-    if user["password_hash"] != hash_password(password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-    return {
-        "message": "Login successful",
-        "user": {
-            "email": email,
-            "registered": True,
-            "is_pro": is_pro_user(email)
-        }
-    }
+    hashed_password = get_password_hash(password)
+    new_user = models.User(email=email, password_hash=hashed_password)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
 
-@app.post("/upgrade-to-pro/")
-async def upgrade_to_pro(email: str = Form(...)):
-    """Upgrade user to pro (placeholder for Stripe integration)"""
-    users = load_users()
+@app.post("/login", response_model=schemas.Token)
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    """User login to get an access token."""
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
-    if email not in users:
-        raise HTTPException(status_code=404, detail="User not found. Please register first.")
-    
-    # Set pro status for 1 month (in production, this would be handled by Stripe webhooks)
-    pro_until = datetime.now() + timedelta(days=30)
-    users[email]["is_pro"] = True
-    users[email]["pro_until"] = pro_until.isoformat()
-    
-    save_users(users)
-    
-    return {
-        "message": f"User {email} upgraded to Pro!",
-        "pro_until": pro_until.isoformat()
-    }
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/usage/{email}")
-async def get_usage(email: str, request: Request):
-    """Get user's usage statistics"""
-    ip_address = get_client_ip(request)
-    usage_count = get_user_usage(email, ip_address)
-    usage_limit = get_usage_limit(email)
-    is_registered = is_registered_user(email)
-    is_pro = is_pro_user(email)
-    
-    remaining = "unlimited" if is_pro else max(0, usage_limit - usage_count)
-    
-    return {
-        "email": email,
-        "documents_processed": usage_count,
-        "usage_limit": usage_limit if usage_limit != float('inf') else "unlimited",
-        "remaining_free": remaining,
-        "is_registered": is_registered,
-        "is_pro": is_pro,
-        "limit_reached": usage_count >= usage_limit and not is_pro,
-        "needs_signup": not is_registered and usage_count >= 1
-    }
+@app.get("/users/me", response_model=schemas.User)
+async def read_users_me(current_user: Annotated[models.User, Depends(get_current_user)]):
+    """Get information about the currently logged-in user."""
+    return current_user
 
 @app.post("/fix-document/")
 async def upload_and_fix(
     request: Request,
     file: UploadFile = File(...),
-    email: str = Form(...)
+    db: Session = Depends(get_db),
+    # The token is now the primary way to identify a user
+    current_user: models.User = Depends(get_current_user)
 ):
-    # Validate file type
+    """Upload, validate, and fix a document."""
     if not file.filename.endswith('.docx'):
-        raise HTTPException(status_code=400, detail="Only .docx files supported")
-    
-    if "@" not in email:
-        raise HTTPException(status_code=400, detail="Valid email required")
-    
-    ip_address = get_client_ip(request)
-    usage_count = get_user_usage(email, ip_address)
-    usage_limit = get_usage_limit(email)
-    is_registered = is_registered_user(email)
-    is_pro = is_pro_user(email)
-    
+        raise HTTPException(status_code=400, detail="Only .docx files are supported.")
+
     # Check usage limits
-    if not is_pro:
-        if usage_count >= usage_limit:
-            if not is_registered:
-                # First time user exceeded 1 document
-                raise HTTPException(
-                    status_code=403,
-                    detail={
-                        "error": "Signup required",
-                        "message": "Sign up for free to get 2 more documents!",
-                        "action": "signup"
-                    }
-                )
-            else:
-                # Registered user exceeded 3 documents
-                raise HTTPException(
-                    status_code=402,
-                    detail={
-                        "error": "Upgrade required",
-                        "message": "Upgrade to Pro for unlimited document processing!",
-                        "action": "upgrade"
-                    }
-                )
+    usage_count = len(current_user.processed_files)
+    limit_reached = (not current_user.is_pro) and (usage_count >= 3)
+    
+    if limit_reached:
+        raise HTTPException(
+            status_code=402, # 402 Payment Required is fitting
+            detail={
+                "error": "Upgrade required",
+                "message": "You have reached your limit of 3 free documents. Upgrade to Pro for unlimited processing!",
+                "action": "upgrade"
+            }
+        )
     
     try:
-        print(f"Processing document for {email} (IP: {ip_address})")
+        ip_address = get_client_ip(request)
+        print(f"Processing document for {current_user.email} (IP: {ip_address})")
         output_path = await fix_document(file)
+
+        # Track usage in the database
+        new_usage = models.Usage(user_id=current_user.id, file_name=file.filename, ip_address=ip_address)
+        db.add(new_usage)
+        db.commit()
         
-        # Track usage
-        track_usage(email, ip_address)
-        
-        print(f"Document processed successfully for {email}")
-        
+        print(f"Document processed successfully for {current_user.email}")
         return FileResponse(
             output_path,
             filename=f"SmartDocFixed_{file.filename}",
@@ -288,7 +192,19 @@ async def upload_and_fix(
         )
     except Exception as e:
         print(f"Error processing document: {e}")
-        raise HTTPException(status_code=500, detail=f"Error processing document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred while processing your document: {str(e)}")
+
+
+@app.post("/upgrade-to-pro/")
+async def upgrade_to_pro(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """(Placeholder) Upgrade the current user to Pro."""
+    # In a real app, this endpoint would be a webhook called by Stripe after a successful payment.
+    current_user.is_pro = True
+    # For a subscription, you'd set a 'pro_until' date.
+    # current_user.pro_until = datetime.now(timezone.utc) + timedelta(days=31)
+    db.commit()
+    return {"message": f"User {current_user.email} has been upgraded to Pro!"}
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
