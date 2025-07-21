@@ -2,7 +2,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from database import Base # <-- The dot has been removed from this line
 
 class User(Base):
     __tablename__ = "users"
@@ -13,8 +13,6 @@ class User(Base):
     is_pro = Column(Boolean, default=False)
     registered_date = Column(DateTime, default=datetime.utcnow)
 
-    # This creates a relationship so you can easily access
-    # all processed files for a user. e.g., my_user.processed_files
     processed_files = relationship("Usage", back_populates="owner")
 
 class Usage(Base):
