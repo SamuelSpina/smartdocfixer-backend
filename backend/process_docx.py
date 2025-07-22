@@ -41,10 +41,11 @@ async def fix_document(file):
     doc = Document(tmp_path)
     print(f"Loaded {len(doc.paragraphs)} paragraphs…")
 
-    # 3) AI system prompt
+    # 3) AI system prompt - UPDATED
     system_msg = """You are SmartDocFixer AI, an expert editor. You improve grammar, clarity, and professional formatting. 
     Preserve essential structures like headings, lists, and tables. Your goal is to polish the text, not remove its core components.
-    Do not add any conversational text or apologies like "Here is the fixed paragraph:". Just return the corrected text directly."""
+    Do not add any conversational text or apologies like "Here is the fixed paragraph:".
+    IMPORTANT: Your output must be plain text only. Do not use any Markdown formatting like **bold** or # headings. Just return the corrected text directly."""
 
     # 4) Iterate through paragraphs and fix them
     for i, para in enumerate(doc.paragraphs):
@@ -61,7 +62,7 @@ async def fix_document(file):
                     {"role": "system", "content": system_msg},
                     {"role": "user",   "content": f"Correct and improve the following paragraph:\n\n{text}"}
                 ],
-                max_tokens=1024, # Increased slightly for safety
+                max_tokens=1024,
                 temperature=0.2,
             )
             improved = resp.choices[0].message.content.strip()
