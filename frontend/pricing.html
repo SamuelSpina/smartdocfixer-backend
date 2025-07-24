@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing | SmartDocFixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-blue': '#1E40AF',
+                        'brand-blue-light': '#3B82F6',
+                        'brand-dark': '#111827',
+                        'brand-slate': '#1E293B',
+                        'brand-light-slate': '#334155',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-gray-300 antialiased">
+
+    <header id="header" class="bg-brand-dark/80 backdrop-blur-lg sticky top-0 z-50 border-b border-brand-light-slate/50">
+        <nav class="container mx-auto px-6 flex justify-between items-center">
+            <!-- Left Side: Logo -->
+            <a href="index.html" class="py-4">
+                <img src="assets/images/logo.png" alt="SmartDocFixer Logo" style="height: 75px;"> 
+            </a>
+            
+            <!-- Right Side: All Links and Buttons -->
+            <div class="flex items-center space-x-8">
+                <div class="hidden md:flex items-center space-x-8 text-lg">
+                    <a href="pricing.html" id="pricingLink" class="text-brand-blue-light hover:text-white transition-colors">Pricing</a>
+                    <a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact Us</a>
+                    <a href="login.html" id="signInLink" class="text-gray-400 hover:text-white transition-colors">Sign In</a>
+                </div>
+                <!-- Account info is separate for alignment -->
+                <div id="accountInfo" class="hidden md:flex items-center space-x-8 text-lg">
+                    <span id="userEmail" class="text-gray-400"></span>
+                    <button id="logoutBtn" class="text-gray-400 hover:text-white transition-colors">Log Out</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="choose-plan.html" id="upgradeBtn" class="hidden bg-yellow-500 text-white font-semibold px-5 py-2.5 rounded-lg text-base hover:bg-yellow-400 transition-colors">Upgrade to Pro</a>
+                    <a href="signup.html" id="getStartedLink" class="bg-brand-blue-light text-white font-semibold px-5 py-2.5 rounded-lg text-base hover:bg-blue-500 transition-colors">Get Started</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-16">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">Choose Your Plan</h1>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-400">Unlock your full potential with our Pro plan. Simple, transparent pricing.</p>
+        </div>
+
+        <div class="mt-16 grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <h3 class="text-2xl font-bold text-white">Free</h3>
+                <p class="mt-2 text-gray-400">For casual users and trying out our core features.</p>
+                <p class="mt-6 text-4xl font-extrabold text-white">$0<span class="text-lg font-medium text-gray-400">/month</span></p>
+                <a href="signup.html" class="pricing-cta-btn-secondary">Get Started for Free</a>
+                <ul class="feature-list">
+                    <li class="feature-item">Basic grammar & style correction</li>
+                    <li class="feature-item">1 document upload per day</li>
+                    <li class="feature-item">Limited template access</li>
+                    <li class="feature-item disabled">Full template library</li>
+                    <li class="feature-item disabled">Unlimited document uploads</li>
+                    <li class="feature-item disabled">Priority email support</li>
+                </ul>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card highlighted">
+                <p class="highlight-tag">Most Popular</p>
+                <h3 class="text-2xl font-bold text-white">Pro</h3>
+                <p class="mt-2 text-gray-400">For students, professionals, and power users.<br>&nbsp;</p>
+                <p class="mt-6 text-4xl font-extrabold text-white">$10<span class="text-lg font-medium text-gray-400">/month</span></p>
+                <a href="signup.html" class="pricing-cta-btn-primary">Get Started With Pro</a>
+                <ul class="feature-list">
+                    <li class="feature-item">Advanced AI grammar & style correction</li>
+                    <li class="feature-item">Full template library (Resume, APA, etc.)</li>
+                    <li class="feature-item">Unlimited document uploads</li>
+                    <li class="feature-item">Priority email support</li>
+                    <li class="feature-item">Early access to new features</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-16">
+        <div class="container mx-auto px-6">
+            <div class="footer-card">
+                <div class="footer-top">
+                    <div>
+                        <h3 class="footer-brand">SmartDocFixer</h3>
+                        <p class="footer-copyright">© 2023 SmartDocFixer Inc. All rights reserved.</p>
+                    </div>
+                    <a href="#" class="footer-social-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                </div>
+                <hr class="footer-divider">
+                <div class="footer-bottom">
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="pricing.html" class="footer-link">Pricing</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+    <script>
+        // Redirect logged-in users away from the public pricing page
+        if (localStorage.getItem('userToken')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+/* Custom CSS for SmartDocFixer */
+
+/* --- Interactive Demo Section --- */
+.toggle-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #9CA3AF; /* gray-400 */
+    transition: all 0.2s ease-in-out;
+    transform: scale(1);
+}
+
+/* Hover effect for non-active buttons */
+.toggle-btn:not(.active):hover {
+    background-color: #334155; /* brand-light-slate */
+    color: #FFFFFF;
+    transform: scale(1.05);
+}
+
+.toggle-btn.active {
+    background-color: #3B82F6; /* brand-blue-light */
+    color: #FFFFFF;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+/* Container for the animated document */
+.document-preview {
+    display: grid;
+}
+
+/* Panes that will fade in and out */
+.content-pane {
+    grid-area: 1 / 1;
+    padding: 3rem; /* Re-apply the padding inside the absolute container */
+    opacity: 0; /* Hidden by default */
+    pointer-events: none;
+    transform: scale(0.98);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* The class that makes a pane visible */
+.content-pane.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+/* --- Resume Demo Styles --- */
+.resume-section {
+    margin-top: 1.5rem; /* 24px */
+}
+
+.resume-heading {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 700;
+    color: #1E40AF; /* brand-blue */
+    border-bottom: 2px solid #E5E7EB; /* gray-200 */
+    padding-bottom: 0.25rem; /* 4px */
+    margin-bottom: 0.75rem; /* 12px */
+}
+
+/* Styles for the "disorganized" text */
+.disorganized-text-1 {
+    transform: translateX(5px) rotate(0.5deg);
+}
+
+.disorganized-list {
+    transform: translateX(-5px) rotate(0.2deg);
+}
+
+/* --- Effects --- */
+.glow-border { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); 
+}
+
+/* --- Feature Card Styles --- */
+.feature-card {
+    background-color: #1E293B; /* brand-slate */
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #334155; /* brand-light-slate */
+    transition: all 0.3s ease-in-out;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: #3B82F6; /* brand-blue-light */
+}
+
+.feature-icon-wrapper {
+    background-color: #111827; /* brand-dark */
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #334155; /* brand-light-slate */
+}
+
+/* --- Tool Card Styles (for Dashboard) --- */
+.tool-card {
+    background-color: #1E293B; /* brand-slate */
+    padding: 2.5rem;
+    border-radius: 1rem;
+    border: 1px solid #334155; /* brand-light-slate */
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.tool-card:not(.is-disabled):hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-color: #3B82F6; /* brand-blue-light */
+}
+
+.tool-card.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #6B7280; /* gray-500 */
+}
+
+.tool-card.is-disabled .tool-card-icon-wrapper {
+    background-color: #374151; /* gray-700 */
+}
+
+.tool-card.is-disabled h3, .tool-card.is-disabled p {
+    color: #9CA3AF; /* gray-400 */
+}
+
+.tool-card-icon-wrapper {
+    background-color: #111827; /* brand-dark */
+    width: 80px;
+    height: 80px;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #334155; /* brand-light-slate */
+    margin-bottom: 1rem;
+}
+
+.tool-card p {
+    flex-grow: 1; /* Pushes the CTA to the bottom */
+}
+
+.tool-card-cta {
+    margin-top: 1.5rem;
+    font-weight: 600;
+    color: #3B82F6; /* brand-blue-light */
+    transition: color 0.2s;
+}
+
+.tool-card:not(.is-disabled):hover .tool-card-cta {
+    color: #FFFFFF;
+}
+
+.tool-card.is-disabled .tool-card-cta {
+    color: #6B7280; /* gray-500 */
+}
+
+/* --- Pricing Card Styles --- */
+.pricing-card {
+    background-color: #1E293B; /* brand-slate */
+    padding: 2.5rem;
+    border-radius: 1rem;
+    border: 1px solid #334155; /* brand-light-slate */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.pricing-card.highlighted {
+    border-color: #3B82F6; /* brand-blue-light */
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+}
+
+.highlight-tag {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #3B82F6; /* brand-blue-light */
+    color: #FFFFFF;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+}
+
+.pricing-cta-btn-primary {
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 0.75rem 1rem;
+    background-color: #3B82F6; /* brand-blue-light */
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+}
+.pricing-cta-btn-primary:hover {
+    background-color: #2563EB; /* A slightly darker blue */
+}
+
+.pricing-cta-btn-secondary {
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 2rem;
+    padding: 0.75rem 1rem;
+    background-color: #334155; /* brand-light-slate */
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+}
+.pricing-cta-btn-secondary:hover {
+    background-color: #475569; /* A slightly lighter slate */
+}
+
+.feature-list {
+    margin-top: 2rem;
+    space-y: 1rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #D1D5DB; /* gray-300 */
+}
+
+.feature-item::before {
+    content: '✓';
+    color: #34D399; /* green-400 */
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.feature-item.disabled {
+    color: #6B7280; /* gray-500 */
+    text-decoration: line-through;
+}
+
+.feature-item.disabled::before {
+    content: '✕';
+    color: #9CA3AF; /* gray-400 */
+}
+
+/* --- Testimonial Card Styles --- */
+.testimonial-card {
+    background-color: #FFFFFF;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    width: 380px;
+}
+
+/* --- Testimonial Marquee Styles --- */
+.testimonial-marquee-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.testimonial-marquee {
+    display: flex;
+    gap: 2rem; /* 32px */
+    animation: scroll 60s linear infinite;
+}
+
+.testimonial-marquee-wrapper:hover .testimonial-marquee {
+    animation-play-state: paused;
+}
+
+@keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* --- FAQ Section Styles --- */
+.faq-tag {
+    background-color: #DBEAFE; /* blue-100 */
+    color: #3B82F6; /* brand-blue-light */
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.faq-item {
+    background-color: #1E293B; /* brand-slate */
+    border: 1px solid #334155; /* brand-light-slate */
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.faq-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #9CA3AF; /* gray-400 */
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    color: #D1D5DB; /* gray-300 */
+}
+
+.faq-answer p {
+    padding: 0 1.5rem 1.5rem;
+}
+
+/* Active state for FAQ item */
+.faq-item.active .faq-question {
+    color: #3B82F6; /* brand-blue-light */
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(45deg);
+    color: #3B82F6; /* brand-blue-light */
+}
+
+.faq-item.active .faq-answer {
+    max-height: 300px; /* Adjust as needed */
+}
+
+/* --- CTA Section Styles --- */
+.cta-card {
+    background-color: #3B82F6; /* brand-blue-light */
+    background-image: 
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0),
+        radial-gradient(circle at 1px 1px, #3B82F6 1px, transparent 0);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    border-radius: 1.5rem; /* 24px */
+    padding: 5rem 2rem;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(59, 130, 246, 0.4);
+}
+
+.cta-button {
+    display: inline-block;
+    margin-top: 2rem;
+    background-color: #FFFFFF;
+    color: #1E40AF; /* brand-blue */
+    font-weight: 700;
+    padding: 1rem 2.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+    transform: scale(1);
+    font-size: 1.125rem;
+}
+
+.cta-button:hover {
+    background-color: #F1F5F9; /* gray-100 */
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Footer Styles --- */
+.footer-card {
+    background-color: #1E293B; /* brand-slate */
+    color: #9CA3AF; /* gray-400 */
+    border-radius: 1.5rem; /* 24px */
+    padding: 2rem;
+    max-width: 1024px;
+    margin: 0 auto;
+    border: 1px solid #334155; /* brand-light-slate */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-brand {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+.footer-copyright {
+    font-size: 0.875rem; /* 14px */
+    color: #9CA3AF; /* gray-400 */
+    margin-top: 0.25rem;
+}
+
+.footer-social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #334155; /* brand-light-slate */
+    border-radius: 0.5rem;
+    color: #FFFFFF;
+    transition: background-color 0.2s ease;
+}
+
+.footer-social-link:hover {
+    background-color: #3B82F6; /* brand-blue-light */
+}
+
+.footer-divider {
+    border-color: #334155; /* brand-light-slate */
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.footer-link {
+    font-size: 0.875rem; /* 14px */
+    color: #9CA3AF; /* gray-400 */
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #FFFFFF;
+}

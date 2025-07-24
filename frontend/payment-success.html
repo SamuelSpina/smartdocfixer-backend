@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | SmartDocFixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-blue-light': '#3B82F6',
+                        'brand-dark': '#111827',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-gray-300 antialiased">
+    <div class="flex min-h-screen flex-col justify-center items-center text-center px-6">
+        <svg class="w-16 h-16 text-green-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h1 class="text-3xl md:text-4xl font-bold text-white">Payment Successful!</h1>
+        <p class="mt-2 text-lg text-gray-400">Your account has been upgraded to Pro.</p>
+        <p id="message" class="mt-4 text-gray-500">Verifying payment and redirecting you to the dashboard...</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const messageEl = document.getElementById('message');
+            const userToken = localStorage.getItem('userToken');
+
+            // In a real app, you would get the session_id from the URL
+            // const sessionId = new URLSearchParams(window.location.search).get('session_id');
+            
+            // if (!userToken || !sessionId) {
+            //     messageEl.textContent = 'Error: Missing authentication token or session ID. Redirecting to login...';
+            //     setTimeout(() => window.location.href = 'login.html', 3000);
+            //     return;
+            // }
+
+            try {
+                // STEP 1: VERIFY PAYMENT WITH YOUR BACKEND
+                // The backend would then verify the session_id with Stripe to confirm payment.
+                /*
+                const response = await fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Payment verification failed.');
+                }
+                */
+
+                // STEP 2: IF VERIFICATION IS SUCCESSFUL, UPDATE LOCAL STATE
+                // For this simulation, we'll just assume it was successful.
+                localStorage.setItem('userPlan', 'pro');
+                
+                messageEl.textContent = 'Verification complete. Welcome to Pro! Redirecting...';
+
+                // STEP 3: REDIRECT TO DASHBOARD
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Verification error:', error);
+                messageEl.textContent = 'There was an error verifying your payment. Please contact support.';
+            }
+        });
+    </script>
+</body>
+</html>

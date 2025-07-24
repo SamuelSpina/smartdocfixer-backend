@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SmartDocFixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-blue': '#1E40AF',
+                        'brand-blue-light': '#3B82F6',
+                        'brand-dark': '#111827',
+                        'brand-slate': '#1E293B',
+                        'brand-light-slate': '#334155',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-gray-300 antialiased">
+
+    <header id="header" class="bg-brand-dark/80 backdrop-blur-lg sticky top-0 z-50 border-b border-brand-light-slate/50">
+        <nav class="container mx-auto px-6 flex justify-between items-center">
+            <!-- Left Side: Logo -->
+            <a href="index.html" class="py-4">
+                <img src="assets/images/logo.png" alt="SmartDocFixer Logo" style="height: 75px;"> 
+            </a>
+            
+            <!-- Right Side: All Links and Buttons -->
+            <div class="flex items-center space-x-8">
+                <div class="hidden md:flex items-center space-x-8 text-lg">
+                    <a href="pricing.html" id="pricingLink" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+                    <a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact Us</a>
+                </div>
+                 <!-- Account info is separate for alignment -->
+                <div id="accountInfo" class="hidden md:flex items-center space-x-8 text-lg">
+                    <span id="userEmail" class="text-gray-400"></span>
+                    <button id="logoutBtn" class="text-gray-400 hover:text-white transition-colors">Log Out</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="choose-plan.html" id="upgradeBtn" class="hidden bg-yellow-500 text-white font-semibold px-5 py-2.5 rounded-lg text-base hover:bg-yellow-400 transition-colors">Upgrade to Pro</a>
+                    <!-- Auth state is managed by JS -->
+                    <a href="signup.html" id="getStartedLink" class="hidden bg-brand-blue-light text-white font-semibold px-5 py-2.5 rounded-lg text-base hover:bg-blue-500 transition-colors">Get Started</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-16">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">Welcome Back!</h1>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-400">Choose a tool to get started.</p>
+        </div>
+
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Tool Card 1: Document Fixer -->
+            <a href="document-fixer.html" class="tool-card">
+                <div class="tool-card-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-brand-blue-light"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.624L16.5 21.75l-.398-1.126a3.375 3.375 0 00-2.456-2.456L12.75 18l1.126-.398a3.375 3.375 0 002.456-2.456L16.5 14.25l.398 1.126a3.375 3.375 0 002.456 2.456L20.25 18l-1.126.398a3.375 3.375 0 00-2.456 2.456z" /></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mt-6">Document Fixer</h3>
+                <p class="mt-2 text-gray-400">Correct grammar, improve style, and apply professional formatting to your .docx files.</p>
+                <span class="tool-card-cta">Use Tool &rarr;</span>
+            </a>
+
+            <!-- Tool Card 2: Resume Formatter -->
+            <a href="resume-formatter.html" class="tool-card">
+                <div class="tool-card-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-brand-blue-light"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mt-6">Resume Formatter</h3>
+                <p class="mt-2 text-gray-400">Transform your career notes into a professional, job-winning resume.</p>
+                <span class="tool-card-cta">Use Tool &rarr;</span>
+            </a>
+
+            <!-- Tool Card 3: APA 7th Edition Formatter -->
+            <a href="apa-formatter.html" class="tool-card">
+                <div class="tool-card-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-brand-blue-light"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mt-6">APA 7th Edition Formatter</h3>
+                <p class="mt-2 text-gray-400">Format your academic papers to the latest APA 7th edition standards instantly.</p>
+                <span class="tool-card-cta">Use Tool &rarr;</span>
+            </a>
+
+            <!-- Tool Card 4: Formal Business Letter -->
+            <a href="business-letter-formatter.html" class="tool-card">
+                <div class="tool-card-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-brand-blue-light"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mt-6">Business Letter Formatter</h3>
+                <p class="mt-2 text-gray-400">Create perfectly formatted formal business letters for any professional context.</p>
+                <span class="tool-card-cta">Use Tool &rarr;</span>
+            </a>
+        </div>
+    </main>
+
+    <footer class="py-16">
+        <div class="container mx-auto px-6">
+            <div class="footer-card">
+                <div class="footer-top">
+                    <div>
+                        <h3 class="footer-brand">SmartDocFixer</h3>
+                        <p class="footer-copyright">© 2023 SmartDocFixer Inc. All rights reserved.</p>
+                    </div>
+                    <a href="#" class="footer-social-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                </div>
+                <hr class="footer-divider">
+                <div class="footer-bottom">
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="pricing.html" class="footer-link">Pricing</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -5,13 +5,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import stripe
 
 # Import our new modules
 from database import SessionLocal, engine, Base
@@ -24,6 +25,14 @@ Base.metadata.create_all(bind=engine)
 
 # --- Configuration & Setup ---
 app = FastAPI(title="SmartDocFixer API", version="2.0.0")
+
+# Load environment variables for Stripe
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+STRIPE_PRO_PRICE_ID = os.getenv("STRIPE_PRO_PRICE_ID")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500/frontend") # Your frontend URL
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 # Allow all origins for simplicity during development
 app.add_middleware(
@@ -96,6 +105,18 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session 
         raise credentials_exception
     return user
 
+def get_current_user_from_token(token: str, db: Session):
+    """Helper to get user from a raw token string, used by webhook."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            return None
+        user = db.query(models.User).filter(models.User.email == email).first()
+        return user
+    except JWTError:
+        return None
+
 def get_client_ip(request: Request) -> str:
     """Get client IP address from request."""
     forwarded = request.headers.get("X-Forwarded-For")
@@ -120,7 +141,7 @@ async def signup(email: str = Form(...), password: str = Form(...), db: Session 
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_password = get_password_hash(password)
-    new_user = models.User(email=email, password_hash=hashed_password)
+    new_user = models.User(email=email, password_hash=hashed_password, plan="free") # Set default plan
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -141,12 +162,85 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "plan": user.plan}
 
 @app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: Annotated[models.User, Depends(get_current_user)]):
-    """Get information about the currently logged-in user."""
+    """Get current user's details."""
     return current_user
+
+@app.post("/create-checkout-session")
+async def create_checkout_session(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Create a Stripe Checkout session for upgrading to Pro."""
+    if not STRIPE_SECRET_KEY or not STRIPE_PRO_PRICE_ID:
+        raise HTTPException(status_code=500, detail="Stripe is not configured on the server.")
+
+    customer_id = current_user.stripe_customer_id
+    # Create a new Stripe customer if one doesn't exist
+    if not customer_id:
+        customer = stripe.Customer.create(email=current_user.email)
+        customer_id = customer.id
+        current_user.stripe_customer_id = customer_id
+        db.commit()
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': STRIPE_PRO_PRICE_ID,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=f"{FRONTEND_URL}/payment-success.html",
+            cancel_url=f"{FRONTEND_URL}/payment-cancel.html",
+            # Pass user ID to metadata to identify user in webhook
+            metadata={'user_id': current_user.id}
+        )
+        return JSONResponse({'url': checkout_session.url})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/stripe-webhook")
+async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+    """Listen for events from Stripe."""
+    if not STRIPE_WEBHOOK_SECRET:
+        raise HTTPException(status_code=500, detail="Stripe webhook secret is not configured.")
+
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e: # Invalid payload
+        raise HTTPException(status_code=400, detail=str(e))
+    except stripe.error.SignatureVerificationError as e: # Invalid signature
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('metadata', {}).get('user_id')
+        
+        if user_id:
+            user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+            if user:
+                user.plan = 'pro'
+                # Also store customer ID if it's not already there
+                if not user.stripe_customer_id:
+                    user.stripe_customer_id = session.get('customer')
+                db.commit()
+                print(f"User {user.email} (ID: {user_id}) upgraded to Pro plan.")
+
+    return JSONResponse({'status': 'success'})
 
 @app.post("/fix-document/")
 async def upload_and_fix(
@@ -162,7 +256,7 @@ async def upload_and_fix(
 
     # Check usage limits
     usage_count = len(current_user.processed_files)
-    limit_reached = (not current_user.is_pro) and (usage_count >= 3)
+    limit_reached = (current_user.plan == "free") and (usage_count >= 3)
     
     if limit_reached:
         raise HTTPException(
@@ -199,9 +293,7 @@ async def upload_and_fix(
 async def upgrade_to_pro(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     """(Placeholder) Upgrade the current user to Pro."""
     # In a real app, this endpoint would be a webhook called by Stripe after a successful payment.
-    current_user.is_pro = True
-    # For a subscription, you'd set a 'pro_until' date.
-    # current_user.pro_until = datetime.now(timezone.utc) + timedelta(days=31)
+    current_user.plan = "pro"
     db.commit()
     return {"message": f"User {current_user.email} has been upgraded to Pro!"}
 

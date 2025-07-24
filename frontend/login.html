@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | SmartDocFixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-blue': '#1E40AF',
+                        'brand-blue-light': '#3B82F6',
+                        'brand-dark': '#111827',
+                        'brand-slate': '#1E293B',
+                        'brand-light-slate': '#334155',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-gray-300 antialiased">
+    <div class="flex min-h-screen flex-col justify-center px-6 py-12 lg:px-8">
+        <div class="sm:mx-auto sm:w-full sm:max-w-md">
+            <a href="index.html">
+                <!-- Using an inline style for precise control over the height -->
+                <img class="mx-auto" style="height: 150px;" src="assets/images/logo.png" alt="SmartDocFixer">
+            </a>
+            <h2 class="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-white">Sign in to your account</h2>
+        </div>
+
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium leading-6 text-gray-300">Email address</label>
+                    <div class="mt-2">
+                        <input id="email" name="email" type="email" autocomplete="email" required class="block w-full rounded-md border-0 bg-brand-light-slate py-2 px-3 text-white shadow-sm ring-1 ring-inset ring-gray-700 focus:ring-2 focus:ring-inset focus:ring-brand-blue-light sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label for="password" class="block text-sm font-medium leading-6 text-gray-300">Password</label>
+                    </div>
+                    <div class="mt-2">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="block w-full rounded-md border-0 bg-brand-light-slate py-2 px-3 text-white shadow-sm ring-1 ring-inset ring-gray-700 focus:ring-2 focus:ring-inset focus:ring-brand-blue-light sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+                
+                <div id="formMessage" class="text-sm text-red-400 pt-1 min-h-[20px]"></div>
+
+                <div>
+                    <button type="submit" id="submitBtn" class="flex w-full justify-center rounded-md bg-brand-blue-light px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-blue-light">Sign in</button>
+                </div>
+            </form>
+
+            <p class="mt-10 text-center text-sm text-gray-400">
+                Not a member?
+                <a href="signup.html" class="font-semibold leading-6 text-brand-blue-light hover:text-blue-400">Sign up for free</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = "https://smartdocfixer-api.onrender.com";
+            const loginForm = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const formMessage = document.getElementById('formMessage');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                formMessage.textContent = '';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Signing in...';
+
+                const body = new URLSearchParams({
+                    'username': emailInput.value,
+                    'password': passwordInput.value
+                });
+
+                try {
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: body
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        formMessage.textContent = data.detail || 'Invalid email or password.';
+                        return;
+                    }
+
+                    localStorage.setItem('userToken', data.access_token);
+                    localStorage.setItem('userEmail', emailInput.value);
+                    // The API now returns the user's plan. Use it.
+                    localStorage.setItem('userPlan', data.plan); 
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard on success
+
+                } catch (error) {
+                    formMessage.textContent = 'Could not connect to the server.';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign in';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

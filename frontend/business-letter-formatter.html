@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Letter Formatter | SmartDocFixer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-blue': '#1E40AF',
+                        'brand-blue-light': '#3B82F6',
+                        'brand-dark': '#111827',
+                        'brand-slate': '#1E293B',
+                        'brand-light-slate': '#334155',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-gray-300 antialiased">
+
+    <header id="header" class="bg-brand-dark/80 backdrop-blur-lg sticky top-0 z-50 border-b border-brand-light-slate/50">
+        <nav class="container mx-auto px-6 flex justify-between items-center">
+            <!-- Left Side: Logo -->
+            <a href="index.html" class="py-4">
+                <img src="assets/images/logo.png" alt="SmartDocFixer Logo" style="height: 75px;"> 
+            </a>
+            
+            <!-- Right Side: All Links and Buttons -->
+            <div class="flex items-center space-x-8">
+                <div class="hidden md:flex items-center space-x-8 text-lg">
+                    <a href="dashboard.html" class="text-gray-400 hover:text-white transition-colors">Dashboard</a>
+                    <a href="pricing.html" id="pricingLink" class="text-gray-400 hover:text-white transition-colors">Pricing</a>
+                    <a href="contact.html" class="text-gray-400 hover:text-white transition-colors">Contact Us</a>
+                </div>
+                 <!-- Account info is separate for alignment -->
+                <div id="accountInfo" class="hidden md:flex items-center space-x-8 text-lg">
+                    <span id="userEmail" class="text-gray-400"></span>
+                    <button id="logoutBtn" class="text-gray-400 hover:text-white transition-colors">Log Out</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="choose-plan.html" id="upgradeBtn" class="hidden bg-yellow-500 text-white font-semibold px-5 py-2.5 rounded-lg text-base hover:bg-yellow-400 transition-colors">Upgrade to Pro</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-16 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white">Business Letter Formatter</h1>
+        <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-400">This tool is coming soon! It will help you draft and format professional business letters for any occasion.</p>
+    </main>
+
+    <footer class="py-16">
+        <div class="container mx-auto px-6">
+            <div class="footer-card">
+                <div class="footer-top">
+                    <div>
+                        <h3 class="footer-brand">SmartDocFixer</h3>
+                        <p class="footer-copyright">© 2023 SmartDocFixer Inc. All rights reserved.</p>
+                    </div>
+                    <a href="#" class="footer-social-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                </div>
+                <hr class="footer-divider">
+                <div class="footer-bottom">
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="pricing.html" class="footer-link">Pricing</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
