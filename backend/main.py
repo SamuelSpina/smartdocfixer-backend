@@ -75,7 +75,6 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    """Create a new JWT access token."""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -128,8 +127,8 @@ def get_client_ip(request: Request) -> str:
 async def root():
     return {"message": "Welcome to SmartDocFixer API v2.0!"}
 
-@app.post("/signup", response_model=schemas.User)
-async def signup(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+@app.post("/signup", response_model=schemas.Token)
+async def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
     if "@" not in email:
         raise HTTPException(status_code=400, detail="Valid email required")
@@ -142,16 +141,23 @@ async def signup(email: str = Form(...), password: str = Form(...), db: Session 
 
     hashed_password = get_password_hash(password)
     new_user = models.User(email=email, password_hash=hashed_password, plan="free") # Set default plan
-    db.add(new_user)
+    db.add(db_user)
     db.commit()
-    db.refresh(new_user)
-    return new_user
+    db.refresh(db_user)
+
+    # Create a token for the new user immediately
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": db_user.email, "plan": db_user.plan}, # Include plan here
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer", "plan": db_user.plan}
 
 @app.post("/login", response_model=schemas.Token)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
     """User login to get an access token."""
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not pwd_context.verify(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -160,7 +166,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": user.email, "plan": user.plan}, # Include plan here
+        expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "plan": user.plan}
 

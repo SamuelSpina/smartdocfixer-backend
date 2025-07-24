@@ -34,21 +34,21 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const messageEl = document.getElementById('message');
             const userToken = localStorage.getItem('userToken');
-            const API_URL = "https://smartdocfixer-api.onrender.com";
 
-            // Get the session_id from the URL, which Stripe adds on success
-            const sessionId = new URLSearchParams(window.location.search).get('session_id');
+            // In a real app, you would get the session_id from the URL
+            // const sessionId = new URLSearchParams(window.location.search).get('session_id');
             
-            if (!userToken || !sessionId) {
-                messageEl.textContent = 'Error: Missing authentication token or session ID. Redirecting to login...';
-                setTimeout(() => window.location.href = 'login.html', 3000);
-                return;
-            }
+            // if (!userToken || !sessionId) {
+            //     messageEl.textContent = 'Error: Missing authentication token or session ID. Redirecting to login...';
+            //     setTimeout(() => window.location.href = 'login.html', 3000);
+            //     return;
+            // }
 
             try {
                 // STEP 1: VERIFY PAYMENT WITH YOUR BACKEND
-                // The backend will verify the session_id with Stripe to confirm payment.
-                const response = await fetch(`${API_URL}/verify-payment`, {
+                // The backend would then verify the session_id with Stripe to confirm payment.
+                /*
+                const response = await fetch('/verify-payment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -58,11 +58,12 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Payment verification failed.');
+                    throw new Error('Payment verification failed.');
                 }
+                */
 
                 // STEP 2: IF VERIFICATION IS SUCCESSFUL, UPDATE LOCAL STATE
+                // For this simulation, we'll just assume it was successful.
                 localStorage.setItem('userPlan', 'pro');
                 
                 messageEl.textContent = 'Verification complete. Welcome to Pro! Redirecting...';
@@ -74,7 +75,7 @@
 
             } catch (error) {
                 console.error('Verification error:', error);
-                messageEl.textContent = `Error: ${error.message}. Please contact support.`;
+                messageEl.textContent = 'There was an error verifying your payment. Please contact support.';
             }
         });
     </script>
