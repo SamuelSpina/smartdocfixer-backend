@@ -10,10 +10,10 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    plan = Column(String, default="free", nullable=False) # 'free' or 'pro'
-    stripe_customer_id = Column(String, nullable=True, unique=True)
-    
-    usage = relationship("Usage", back_populates="user")
+    plan = Column(String(50), nullable=False, default="free") # Add this line
+    stripe_customer_id = Column(String, unique=True, nullable=True)
+
+    processed_files = relationship("ProcessedFile", back_populates="owner")
 
 
 class Usage(Base):
