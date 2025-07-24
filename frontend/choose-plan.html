@@ -104,28 +104,20 @@
                 proPlanBtn.textContent = 'Redirecting to payment...';
 
                 try {
-                    // In a real app, this endpoint would create a Stripe Checkout session
+                    // This endpoint creates a Stripe Checkout session
                     const response = await fetch(`${API_URL}/create-checkout-session`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${userToken}`
-                        },
-                        // The backend needs to know which price ID to use
-                        body: JSON.stringify({ priceId: 'YOUR_STRIPE_PRICE_ID' }) 
+                        }
+                        // The backend will use the price ID from its .env file,
+                        // so we don't need to send it from the frontend.
                     });
 
                     if (!response.ok) {
-                        // For simulation, we'll assume this always fails gracefully
-                        // and we'll manually create the redirect.
-                        console.error("Could not connect to backend. Simulating Stripe redirect.");
-                        alert("SIMULATION: Could not connect to backend. Redirecting to a mock Stripe checkout page.");
-                        
-                        // In a real scenario, the `data.url` would come from the backend.
-                        // We are hardcoding it to our new success page for this simulation.
-                        const mockCheckoutUrl = 'payment-success.html';
-                        window.location.href = mockCheckoutUrl;
-                        return;
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Failed to create payment session.');
                     }
                     
                     const data = await response.json();
@@ -134,7 +126,7 @@
 
                 } catch (error) {
                     console.error('Stripe checkout error:', error);
-                    alert('Could not initiate payment. Please try again later.');
+                    alert('Could not initiate payment. Please try again later or contact support.');
                     proPlanBtn.disabled = false;
                     proPlanBtn.textContent = 'Go Pro';
                 }
